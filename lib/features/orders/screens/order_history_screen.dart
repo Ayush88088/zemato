@@ -60,7 +60,25 @@ class OrderHistoryScreen extends ConsumerWidget {
       body: ordersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(
-          child: Text('Could not load orders.'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: colorScheme.error,
+              ),
+              const SizedBox(height: 12),
+              const Text('Something went wrong'),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () {
+                  ref.invalidate(ordersStreamProvider);
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
         data: (orders) {
           if (orders.isEmpty) {

@@ -372,7 +372,25 @@ class RestaurantDetailScreen extends ConsumerWidget {
                     },
                     error: (error, stackTrace) => SliverFillRemaining(
                       child: Center(
-                        child: Text('Could not load menu. $error'),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline_rounded,
+                              size: 48,
+                              color: colorScheme.error,
+                            ),
+                            const SizedBox(height: 12),
+                            const Text('Something went wrong'),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: () {
+                                ref.invalidate(menuProvider(restaurantId));
+                              },
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     loading: () => const SliverFillRemaining(
@@ -442,7 +460,25 @@ class RestaurantDetailScreen extends ConsumerWidget {
       error: (error, stackTrace) => Scaffold(
         appBar: AppBar(),
         body: Center(
-          child: Text('Could not load restaurant. $error'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 12),
+              const Text('Something went wrong'),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () {
+                  ref.invalidate(restaurantProvider(restaurantId));
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
       ),
       loading: () => const Scaffold(

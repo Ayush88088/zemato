@@ -146,172 +146,197 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: ref.watch(restaurantsProvider).when(
-                      loading: () => _buildShimmerList(colorScheme),
-                      error: (error, stackTrace) => Center(
-                        child: Text(
-                          'Could not load restaurants.',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ),
-                      data: (restaurants) {
-                        final filteredRestaurants = _applyCategoryFilter(
-                          restaurants,
-                          selectedCategory,
-                        );
-
-                        if (filteredRestaurants.isEmpty) {
-                          return Center(
-                            child: Text(
-                              'No restaurants available right now.',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          );
-                        }
-
-                        return ListView.separated(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          itemCount: filteredRestaurants.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            final restaurant = filteredRestaurants[index];
-                            final imageUrl =
-                                restaurant['imageUrl'] as String? ?? '';
-                            final name =
-                                restaurant['name'] as String? ?? 'Restaurant';
-                            final cuisine =
-                                restaurant['cuisine'] as String? ?? 'Various';
-                            final rating = restaurant['rating'] ?? 4.5;
-                            final deliveryTimeMins =
-                                restaurant['deliveryTimeMins'] ?? 25;
-
-                            return Card(
-                              elevation: 2,
-                              margin: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18),
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(restaurantsProvider);
+                  },
+                  child: ref.watch(restaurantsProvider).when(
+                        loading: () => _buildShimmerList(colorScheme),
+                        error: (error, stackTrace) => Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.error_outline_rounded,
+                                size: 48,
+                                color: colorScheme.error,
                               ),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(18),
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute<void>(
-                                      builder: (_) => RestaurantDetailScreen(
-                                        restaurantId:
-                                            restaurant['id'] as String,
-                                      ),
-                                    ),
-                                  );
+                              const SizedBox(height: 12),
+                              Text(
+                                'Something went wrong',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 12),
+                              ElevatedButton(
+                                onPressed: () {
+                                  ref.invalidate(restaurantsProvider);
                                 },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(14),
-                                        child: SizedBox(
-                                          width: 110,
-                                          height: 110,
-                                          child: CachedNetworkImage(
-                                            imageUrl: imageUrl,
-                                            fit: BoxFit.cover,
-                                            placeholder: (context, url) =>
-                                                Container(
-                                              color: colorScheme
-                                                  .surfaceContainerHighest,
-                                            ),
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    Container(
-                                              color: colorScheme
-                                                  .surfaceContainerHighest,
-                                              child: Icon(
-                                                Icons
-                                                    .image_not_supported_outlined,
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        ),
+                        data: (restaurants) {
+                          final filteredRestaurants = _applyCategoryFilter(
+                            restaurants,
+                            selectedCategory,
+                          );
+
+                          if (filteredRestaurants.isEmpty) {
+                            return Center(
+                              child: Text(
+                                'No restaurants available right now.',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            );
+                          }
+
+                          return ListView.separated(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            itemCount: filteredRestaurants.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final restaurant = filteredRestaurants[index];
+                              final imageUrl =
+                                  restaurant['imageUrl'] as String? ?? '';
+                              final name =
+                                  restaurant['name'] as String? ?? 'Restaurant';
+                              final cuisine =
+                                  restaurant['cuisine'] as String? ?? 'Various';
+                              final rating = restaurant['rating'] ?? 4.5;
+                              final deliveryTimeMins =
+                                  restaurant['deliveryTimeMins'] ?? 25;
+
+                              return Card(
+                                elevation: 2,
+                                margin: EdgeInsets.zero,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(18),
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => RestaurantDetailScreen(
+                                          restaurantId:
+                                              restaurant['id'] as String,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(14),
+                                          child: SizedBox(
+                                            width: 110,
+                                            height: 110,
+                                            child: CachedNetworkImage(
+                                              imageUrl: imageUrl,
+                                              fit: BoxFit.cover,
+                                              placeholder: (context, url) =>
+                                                  Container(
                                                 color: colorScheme
-                                                    .onSurfaceVariant,
+                                                    .surfaceContainerHighest,
+                                              ),
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      Container(
+                                                color: colorScheme
+                                                    .surfaceContainerHighest,
+                                                child: Icon(
+                                                  Icons
+                                                      .image_not_supported_outlined,
+                                                  color: colorScheme
+                                                      .onSurfaceVariant,
+                                                ),
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              name,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleMedium
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w700,
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                name,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Text(
+                                                cuisine,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      color: colorScheme
+                                                          .onSurfaceVariant,
+                                                    ),
+                                              ),
+                                              const SizedBox(height: 12),
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.star_rounded,
+                                                    color: Colors.amber,
+                                                    size: 18,
                                                   ),
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Text(
-                                              cuisine,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.copyWith(
-                                                    color: colorScheme
-                                                        .onSurfaceVariant,
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    rating.toString(),
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium,
                                                   ),
-                                            ),
-                                            const SizedBox(height: 12),
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.star_rounded,
-                                                  color: Colors.amber,
-                                                  size: 18,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  rating.toString(),
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyMedium,
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.access_time_rounded,
-                                                  color: colorScheme.primary,
-                                                  size: 18,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  '$deliveryTimeMins mins',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyMedium,
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                                ],
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.access_time_rounded,
+                                                    color: colorScheme.primary,
+                                                    size: 18,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    '$deliveryTimeMins mins',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium,
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                ),
               ),
             ],
           ),
