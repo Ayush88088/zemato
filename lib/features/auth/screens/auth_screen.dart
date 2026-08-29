@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:zemato/features/home/screens/home_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -47,7 +48,8 @@ class _AuthScreenState extends State<AuthScreen> {
       if (_isLogin) {
         await auth.signInWithEmailAndPassword(email: email, password: password);
       } else {
-        await auth.createUserWithEmailAndPassword(email: email, password: password);
+        await auth.createUserWithEmailAndPassword(
+            email: email, password: password);
       }
 
       if (!mounted) return;
@@ -57,10 +59,12 @@ class _AuthScreenState extends State<AuthScreen> {
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       final message = e.message ?? e.code;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('An unexpected error occurred')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('An unexpected error occurred')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -151,19 +155,6 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Home Screen'),
       ),
     );
   }

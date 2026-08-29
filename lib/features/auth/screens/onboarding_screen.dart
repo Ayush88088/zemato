@@ -81,7 +81,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const SizedBox(height: 24),
                         Text(
                           item.title,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
                           textAlign: TextAlign.center,
@@ -99,7 +102,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
@@ -112,7 +116,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         width: active ? 18.0 : 8.0,
                         height: 8.0,
                         decoration: BoxDecoration(
-                          color: active ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.3),
+                          color: active
+                              ? colorScheme.primary
+                              : colorScheme.onSurface.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                       );
@@ -131,9 +137,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   else
                     TextButton(
                       onPressed: () {
-                        _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                        _controller.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut);
                       },
-                      child: Text('Next', style: TextStyle(color: colorScheme.primary)),
+                      child: Text('Next',
+                          style: TextStyle(color: colorScheme.primary)),
                     ),
                 ],
               ),
@@ -149,6 +158,6 @@ class _OnboardData {
   final IconData icon;
   final String title;
   final String description;
-  const _OnboardData({required this.icon, required this.title, required this.description});
+  const _OnboardData(
+      {required this.icon, required this.title, required this.description});
 }
-
