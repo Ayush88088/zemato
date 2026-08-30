@@ -16,6 +16,13 @@ class CartScreen extends ConsumerStatefulWidget {
 
 class _CartScreenState extends ConsumerState<CartScreen> {
   bool isPlacingOrder = false;
+  final TextEditingController deliveryAddressController = TextEditingController();
+
+  @override
+  void dispose() {
+    deliveryAddressController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,6 +168,15 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    TextField(
+                      controller: deliveryAddressController,
+                      decoration: const InputDecoration(
+                        labelText: 'Delivery Address',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 16),
                     Card(
                       elevation: 1,
                       child: Padding(
@@ -193,6 +209,15 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         onPressed: cartItems.isEmpty || isPlacingOrder
                             ? null
                             : () async {
+                                if (deliveryAddressController.text.trim().isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Please enter a delivery address'),
+                                    ),
+                                  );
+                                  return;
+                                }
+
                                 setState(() => isPlacingOrder = true);
 
                                 final user = FirebaseAuth.instance.currentUser;
@@ -224,6 +249,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                   'subtotal': subtotalVal,
                                   'deliveryFee': deliveryFee,
                                   'total': subtotalVal + deliveryFee,
+                                  'deliveryAddress': deliveryAddressController.text.trim(),
+                                  'driverId': null,
                                   'status': 'placed',
                                   'createdAt': FieldValue.serverTimestamp(),
                                 };
