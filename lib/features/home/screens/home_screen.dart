@@ -8,6 +8,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:zemato/features/restaurant/screens/restaurant_detail_screen.dart';
 
 final selectedCategoryProvider = StateProvider<String>((ref) => 'All');
+final searchQueryProvider = StateProvider<String>((ref) => '');
 
 final restaurantsProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
   return FirebaseFirestore.instance
@@ -19,8 +20,28 @@ final restaurantsProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
           }).toList());
 });
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  late final TextEditingController _searchController;
+  bool isSearching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   static List<Map<String, dynamic>> _applyCategoryFilter(
     List<Map<String, dynamic>> restaurants,
@@ -39,9 +60,10 @@ class HomeScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final selectedCategory = ref.watch(selectedCategoryProvider);
+    final searchQuery = ref.watch(searchQueryProvider);
     final categories = <String>[
       'All',
       'North Indian',
@@ -61,23 +83,63 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Row(
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on_outlined,
-                          color: colorScheme.primary,
+                    if (isSearching)
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          autofocus: true,
+                          onChanged: (value) {
+                            ref.read(searchQueryProvider.notifier).state =
+                                value;
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Search restaurants...',
+                            isDense: true,
+                            filled: true,
+                            fillColor: colorScheme.surfaceContainerHighest,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                _searchController.clear();
+                                ref.read(searchQueryProvider.notifier).state =
+                                    '';
+                                setState(() => isSearching = false);
+                                FocusScope.of(context).unfocus();
+                              },
+                              icon: const Icon(Icons.close),
+                              tooltip: 'Clear search',
+                            ),
+                          ),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Deliver to: Lucknow',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                      )
+                    else
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_outlined,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Deliver to: Lucknow',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    const Spacer(),
+                      ),
                     IconButton(
                       onPressed: () {
                         Navigator.of(context).push(
@@ -107,7 +169,13 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        setState(() => isSearching = true);
+                        if (_searchController.text.isEmpty) {
+                          _searchController.text =
+                              ref.read(searchQueryProvider);
+                        }
+                      },
                       tooltip: 'Search',
                       icon: Icon(
                         Icons.search_rounded,
@@ -177,10 +245,43 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ),
                         data: (restaurants) {
-                          final filteredRestaurants = _applyCategoryFilter(
+                          var filteredRestaurants = _applyCategoryFilter(
                             restaurants,
                             selectedCategory,
                           );
+
+                          final trimmedQuery = searchQuery.trim();
+                          if (trimmedQuery.isNotEmpty) {
+                            filteredRestaurants =
+                                filteredRestaurants.where((restaurant) {
+                              final name = (restaurant['name'] as String? ?? '')
+                                  .toLowerCase();
+                              return name.contains(trimmedQuery.toLowerCase());
+                            }).toList();
+                          }
+
+                          if (trimmedQuery.isNotEmpty &&
+                              filteredRestaurants.isEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.search_off_rounded,
+                                    size: 48,
+                                    color: colorScheme.primary,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    "No restaurants found for '$trimmedQuery'",
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
 
                           if (filteredRestaurants.isEmpty) {
                             return Center(
